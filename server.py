@@ -14,8 +14,7 @@ nltk.download("vader_lexicon")
 analyzer = SentimentIntensityAnalyzer()
 
 app = Flask(__name__)
-app.config['CORS_HEADERS'] = 'Content-Type'
-CORS(app, resources={r"/analyze-text/*": {"origins": "*" }})
+CORS(app, resources={r"/analyze-text/*": {"origins": "*"}})
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
@@ -37,12 +36,13 @@ def analyze_sentiment(text):
         return "Negative"
     else:
         return "Neutral"
-   
 
 @limiter.limit("10/minute")
-@app.route("/analyze-text/<secret_key>", methods=["POST"])
+@app.route("/analyze-text/<secret_key>", methods=["POST", "OPTIONS"])
 def analyze_text(secret_key):
-    if request.method == "POST":
+    if request.method == "OPTIONS":
+        response = jsonify(message="Preflight request handled successfully")
+    elif request.method == "POST":
         secret = secret_key
         if secret == os.getenv("SECRET_KEY"):
             data = request.get_json()
@@ -50,14 +50,18 @@ def analyze_text(secret_key):
                 content = data.get("content")
                 sentiment = analyze_sentiment(content)
                 response = jsonify(message="Hello, analysis result here!", result=sentiment)
-                response.headers.add("Access-Control-Allow-Origin", "*")
-                response.headers.add("Access-Control-Allow-Headers", "*")
-                response.headers.add("Access-Control-Allow-Methods", "*")
-                return response
+            else:
+                response = jsonify(message="Content not found in the request", result=None)
+        else:
+            response = jsonify(message="Unauthorized", result=None)
+    else:
+        response = jsonify(message="Method Not Allowed", result=None)
 
-        return "Unauthorized"
-    return "Method Not Allowed"
-
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, POST, PUT, DELETE")
+    
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)
