@@ -7,7 +7,7 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from textblob import TextBlob
 from deep_translator import GoogleTranslator
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 nltk.download("vader_lexicon")
 
@@ -15,8 +15,8 @@ analyzer = SentimentIntensityAnalyzer()
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/analyze-text/*": {"origins": "*" }})
-
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
@@ -39,14 +39,11 @@ def analyze_sentiment(text):
     else:
         return "Neutral"
 
-@app.after_request
-def after_request(response):
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-  response.headers.add('Access-Control-Allow-Methods', '*')
-  return response
+
 
 @limiter.limit("10/minute")
 @app.route("/analyze-text/<secret_key>", methods=["POST"])
+@cross_origin()
 def analyze_text(secret_key):
     if request.method == "POST":
         secret = secret_key
@@ -56,9 +53,6 @@ def analyze_text(secret_key):
                 content = data.get("content")
                 sentiment = analyze_sentiment(content)
                 response = jsonify(message="Hello, analysis result here!", result=sentiment)
-                response.headers.add("Access-Control-Allow-Origin", "*")
-                response.headers.add("Access-Control-Allow-Headers", "*")
-                response.headers.add("Access-Control-Allow-Methods", "*")
                 return response
 
         return "Unauthorized"
