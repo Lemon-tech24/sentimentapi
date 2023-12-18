@@ -16,7 +16,7 @@ analyzer = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
 CORS(app, resources={r"/analyze-text/*": {"origins": "*" }})
-app.config['CORS_ALLOW_HEADERS'] = 'Content-Type'
+
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
@@ -38,7 +38,12 @@ def analyze_sentiment(text):
         return "Negative"
     else:
         return "Neutral"
-   
+
+@app.after_request
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+  response.headers.add('Access-Control-Allow-Methods', '*')
+  return response
 
 @limiter.limit("10/minute")
 @app.route("/analyze-text/<secret_key>", methods=["POST"])
