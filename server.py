@@ -47,8 +47,8 @@ def analyze_text(secret_key):
                 sentiment = analyze_sentiment(content)
                 return jsonify(message="Hello, analysis result here!", result=sentiment)
 
-        return jsonify(error="Unauthorized"), 401
-    return jsonify(error="Method Not Allowed"), 405
+        return "Unauthorized"
+    return "Method Not Allowed"
 
 if __name__ == "__main__":
     app.run(debug=True)
