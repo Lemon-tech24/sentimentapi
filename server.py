@@ -49,6 +49,9 @@ def analyze_text(secret_key):
                 content = data.get("content")
                 sentiment = analyze_sentiment(content)
                 response = jsonify(message="Hello, analysis result here!", result=sentiment)
+                response.headers.add("Access-Control-Allow-Origin", "*")
+                response.headers.add("Access-Control-Allow-Headers", "*")
+                response.headers.add("Access-Control-Allow-Methods", "*")
                 return response
 
         return "Unauthorized"
