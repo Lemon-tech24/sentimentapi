@@ -14,7 +14,9 @@ nltk.download("vader_lexicon")
 analyzer = SentimentIntensityAnalyzer()
 
 app = Flask(__name__)
-CORS(app, resources={r"/analyze-text/*": {"origins": "*"}})
+
+CORS(app, resources={r"/analyze-text/*": {"origins": "*" }})
+app.config['CORS_ALLOW_HEADERS'] = 'Content-Type'
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
@@ -36,13 +38,12 @@ def analyze_sentiment(text):
         return "Negative"
     else:
         return "Neutral"
+   
 
 @limiter.limit("10/minute")
-@app.route("/analyze-text/<secret_key>", methods=["POST", "OPTIONS"])
+@app.route("/analyze-text/<secret_key>", methods=["POST"])
 def analyze_text(secret_key):
-    if request.method == "OPTIONS":
-        response = jsonify(message="Preflight request handled successfully")
-    elif request.method == "POST":
+    if request.method == "POST":
         secret = secret_key
         if secret == os.getenv("SECRET_KEY"):
             data = request.get_json()
@@ -50,18 +51,14 @@ def analyze_text(secret_key):
                 content = data.get("content")
                 sentiment = analyze_sentiment(content)
                 response = jsonify(message="Hello, analysis result here!", result=sentiment)
-            else:
-                response = jsonify(message="Content not found in the request", result=None)
-        else:
-            response = jsonify(message="Unauthorized", result=None)
-    else:
-        response = jsonify(message="Method Not Allowed", result=None)
+                response.headers.add("Access-Control-Allow-Origin", "*")
+                response.headers.add("Access-Control-Allow-Headers", "*")
+                response.headers.add("Access-Control-Allow-Methods", "*")
+                return response
 
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "OPTIONS, HEAD, GET, POST, PUT, DELETE")
-    
-    return response
+        return "Unauthorized"
+    return "Method Not Allowed"
+
 
 if __name__ == "__main__":
     app.run(debug=True)
