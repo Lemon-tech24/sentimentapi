@@ -16,7 +16,7 @@ analyzer = SentimentIntensityAnalyzer()
 app = Flask(__name__)
 
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_ALLOW_HEADERS'] = 'Content-Type'
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
