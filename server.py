@@ -7,12 +7,15 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from textblob import TextBlob
 from deep_translator import GoogleTranslator
+from flask_cors import CORS
 
 nltk.download("vader_lexicon")
 
 analyzer = SentimentIntensityAnalyzer()
 
 app = Flask(__name__)
+CORS(app)
+
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
 load_dotenv()
@@ -45,10 +48,12 @@ def analyze_text(secret_key):
             if "content" in data:
                 content = data.get("content")
                 sentiment = analyze_sentiment(content)
-                return jsonify(message="Hello, analysis result here!", result=sentiment)
+                response = jsonify(message="Hello, analysis result here!", result=sentiment)
+                return response
 
         return "Unauthorized"
     return "Method Not Allowed"
+
 
 if __name__ == "__main__":
     app.run(debug=True)

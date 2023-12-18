@@ -4,3 +4,4 @@ python-dotenv
 textblob
 deep_translator
 gunicorn
+flask-cors
