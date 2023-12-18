@@ -14,7 +14,7 @@ nltk.download("vader_lexicon")
 analyzer = SentimentIntensityAnalyzer()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/analyze-text/*": {"origins": "https://example.com"}})
 
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 limiter.init_app(app)
