@@ -7,7 +7,7 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from textblob import TextBlob
 from deep_translator import GoogleTranslator
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 
 nltk.download("vader_lexicon")
 

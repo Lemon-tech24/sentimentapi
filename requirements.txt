@@ -5,3 +5,4 @@ textblob
 deep_translator
 gunicorn
 flask-cors
+flask_cors
