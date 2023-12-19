@@ -43,7 +43,6 @@ def analyze_sentiment(text):
 
 @limiter.limit("10/minute")
 @app.route("/analyze-text/<secret_key>", methods=["POST"])
-@cross_origin()
 def analyze_text(secret_key):
     if request.method == "POST":
         secret = secret_key
